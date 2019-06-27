@@ -188,13 +188,23 @@ def label_frame(original, bboxes, classes, frame_text):
         if key == 225 or key == 226: # shift seems to be platform dependent
             shift_pressed = True
 
-        elif shift_pressed and ord('a') <= key <= ord('z'):
-            current_class = chr(key)
+        elif ((shift_pressed and ord('a') <= key <= ord('z')) or
+                (ord('A') <= key <= ord('Z'))):
+            # User tried entering a class label
             shift_pressed = False
-            draw(original.copy())
             
-        elif ord('A') <= key <= ord('Z'):
-            current_class = chr(key).lower()
+            pressed = chr(key).lower()
+            if pressed == "b":
+                current_class = "backpack"
+            elif pressed == "s":
+                current_class = "survivor"
+            elif pressed == "f":
+                current_class = "fire extinguisher"
+            elif pressed == "p":
+                current_class = "cell phone"
+            elif pressed == "d":
+                current_class = "drill"
+           
             draw(original.copy())
 
         elif key == ord('c'): # Clear everything
