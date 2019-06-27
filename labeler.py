@@ -88,6 +88,7 @@ WINDOW = "Labeling"
 WINDOW_SCALE = args.window_scale
 CACHE_SIZE = 150 # 5 seconds worth of frames
 
+current_class = None
 last_bboxes = []
 last_classes = []
 brightness = 1.0
@@ -137,10 +138,9 @@ def standardize_bbox(bbox):
 # Let the user do some labeling. If they press any key that doesn't map to a
 # useful thing here, we return it.
 def label_frame(original, bboxes, classes, frame_text):
-    global last_bboxes, last_classes
+    global last_bboxes, last_classes, current_class
 
     points = []
-    current_class = None
     shift_pressed = False
 
     def draw(frame):
@@ -188,24 +188,54 @@ def label_frame(original, bboxes, classes, frame_text):
         if key == 225 or key == 226: # shift seems to be platform dependent
             shift_pressed = True
 
-        elif ((shift_pressed and ord('a') <= key <= ord('z')) or
-                (ord('A') <= key <= ord('Z'))):
-            # User tried entering a class label
+        elif (key == ord('b') or (shift_pressed and key == ord('b')) or
+                key == ord('B')):
             shift_pressed = False
-            
-            pressed = chr(key).lower()
-            if pressed == "b":
-                current_class = "backpack"
-            elif pressed == "s":
-                current_class = "survivor"
-            elif pressed == "f":
-                current_class = "fire extinguisher"
-            elif pressed == "p":
-                current_class = "cell phone"
-            elif pressed == "d":
-                current_class = "drill"
-           
+            current_class = "backpack"
             draw(original.copy())
+        
+        elif (key == ord('s') or (shift_pressed and key == ord('s')) or
+                key == ord('S')):
+            shift_pressed = False
+            current_class = "survivor"
+            draw(original.copy())
+        
+        elif (key == ord('f') or (shift_pressed and key == ord('f')) or
+                key == ord('F')):
+            shift_pressed = False
+            current_class = "fire extinguisher"
+            draw(original.copy())
+        
+        elif (key == ord('p') or (shift_pressed and key == ord('p')) or
+                key == ord('P')):
+            shift_pressed = False
+            current_class = "cell phone"
+            draw(original.copy())
+        
+        elif (key == ord('d') or (shift_pressed and key == ord('d')) or
+                key == ord('D')):
+            shift_pressed = False
+            current_class = "drill"
+            draw(original.copy())
+
+        #  elif ((shift_pressed and ord('a') <= key <= ord('z')) or
+        #          (ord('A') <= key <= ord('Z'))):
+        #      # User tried entering a class label
+        #      shift_pressed = False
+        #      
+        #      pressed = chr(key).lower()
+        #      if pressed == "b":
+        #          current_class = "backpack"
+        #      elif pressed == "s":
+        #          current_class = "survivor"
+        #      elif pressed == "f":
+        #          current_class = "fire extinguisher"
+        #      elif pressed == "p":
+        #          current_class = "cell phone"
+        #      elif pressed == "d":
+        #          current_class = "drill"
+        #     
+        #      draw(original.copy())
 
         elif key == ord('c'): # Clear everything
             bboxes.clear()
