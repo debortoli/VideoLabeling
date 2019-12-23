@@ -77,7 +77,7 @@ parser.add_argument("-p", "--run_path", default="",
         help="Directory for storing output. Pass in path to tracker folder.")
 parser.add_argument("-r", "--rotate", action="store_true", default=False,
         help="Rotate image 180 degrees before displaying (saved as rotated).")
-parser.add_argument("-v", "--validation", action="store_true", default=False,
+parser.add_argument("-w", "--validation", action="store_true", default=False,
         help="Turn on validation mode. No new images or labels will be saved"
         " unless they already exist.")
 parser.add_argument("-s", "--window_scale", default=1.0, type=float,
