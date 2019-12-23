@@ -40,7 +40,7 @@ Normal Mode Keybinds:
     h:        Step backward one frame
     l:        Step forward one frame
     r:        Toggle rotation 180 degrees
-    v:        Toggle validation mode (don't write out new images or labels)
+    w:        Toggle validation mode (don't write out new images or labels)
     q:        Quit the labeler
 
 Label Mode Keybinds:
@@ -199,12 +199,7 @@ def label_frame(original, bboxes, classes, frame_text):
             shift_pressed = False
             current_class = "survivor"
             draw(original.copy())
-        
-        elif (key == ord('f') or (shift_pressed and key == ord('f')) or
-                key == ord('F')):
-            shift_pressed = False
-            current_class = "fire extinguisher"
-            draw(original.copy())
+       
         
         elif (key == ord('p') or (shift_pressed and key == ord('p')) or
                 key == ord('P')):
@@ -212,11 +207,17 @@ def label_frame(original, bboxes, classes, frame_text):
             current_class = "cell phone"
             draw(original.copy())
         
-        elif (key == ord('d') or (shift_pressed and key == ord('d')) or
-                key == ord('D')):
+        elif (key == ord('v') or (shift_pressed and key == ord('v')) or
+                key == ord('V')):
             shift_pressed = False
-            current_class = "drill"
+            current_class = "vent"
             draw(original.copy())
+
+	#elif (key == ord('f') or (shift_pressed and key == ord('f')) or
+        #        key == ord('F')):
+        #    shift_pressed = False
+        #    current_class = "fire extinguisher"
+        #    draw(original.copy())
 
         #  elif ((shift_pressed and ord('a') <= key <= ord('z')) or
         #          (ord('A') <= key <= ord('Z'))):
@@ -398,7 +399,7 @@ def main():
             break
         elif key == ord('r'):
             rotate_image = not rotate_image
-        elif key == ord('v'):
+        elif key == ord('w'):
             validation = not validation
         elif key == ord('l'):
             current_frame_number += 1
