@@ -37,9 +37,9 @@ Normal Mode Keybinds:
     j:        Cut autoplay delay in half
     k:        Double autoplay delay
     n:        Go to the next frame which will be saved, and pause to label
-    h:        Step backward one frame
+    g:        Step backward one frame
     l:        Step forward one frame
-    f:        Toggle rotation 180 degrees
+    d:        Toggle rotation 180 degrees
     w:        Toggle validation mode (don't write out new images or labels)
     q:        Quit the labeler
 
@@ -55,7 +55,7 @@ In normal usage, you'll likely want to follow a workflow like this:
 
     1. Enable autoplay (SpaceBar), disabling (also SpaceBar) when you find a
     video segment which contains any of the objects of interest.
-    2. If you paused at the wrong frame, use 'h' an 'l' to step by a single
+    2. If you paused at the wrong frame, use 'g' an 'l' to step by a single
     frame until you find the right frame.
     3. Press 'n' to skip forward to the next saved frame.
     4. Label the current saved frame.
@@ -213,8 +213,8 @@ def label_frame(original, bboxes, classes, frame_text):
             current_class = "rope"
             draw(original.copy())
 
-        elif (key == ord('m') or (shift_pressed and key == ord('m')) or
-                key == ord('M')):
+        elif (key == ord('h') or (shift_pressed and key == ord('h')) or
+                key == ord('H')):
             shift_pressed = False
             current_class = "helmet"
             draw(original.copy())
@@ -378,13 +378,13 @@ def main():
         # labeled something, as above.
         if key == ord('q'):
             break
-        elif key == ord('f'):
+        elif key == ord('d'):
             rotate_image = not rotate_image
         elif key == ord('w'):
             validation = not validation
         elif key == ord('l'):
             current_frame_number += 1
-        elif key == ord('h'):
+        elif key == ord('g'):
             current_frame_number -= 1
             current_frame_number = max(current_frame_number,
                     last_removed_frame + 1)
