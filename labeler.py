@@ -39,7 +39,7 @@ Normal Mode Keybinds:
     n:        Go to the next frame which will be saved, and pause to label
     h:        Step backward one frame
     l:        Step forward one frame
-    r:        Toggle rotation 180 degrees
+    f:        Toggle rotation 180 degrees
     w:        Toggle validation mode (don't write out new images or labels)
     q:        Quit the labeler
 
@@ -207,36 +207,17 @@ def label_frame(original, bboxes, classes, frame_text):
             current_class = "cell phone"
             draw(original.copy())
         
-        elif (key == ord('v') or (shift_pressed and key == ord('v')) or
-                key == ord('V')):
+        elif (key == ord('r') or (shift_pressed and key == ord('r')) or
+                key == ord('R')):
             shift_pressed = False
-            current_class = "vent"
+            current_class = "rope"
             draw(original.copy())
 
-	#elif (key == ord('f') or (shift_pressed and key == ord('f')) or
-        #        key == ord('F')):
-        #    shift_pressed = False
-        #    current_class = "fire extinguisher"
-        #    draw(original.copy())
-
-        #  elif ((shift_pressed and ord('a') <= key <= ord('z')) or
-        #          (ord('A') <= key <= ord('Z'))):
-        #      # User tried entering a class label
-        #      shift_pressed = False
-        #      
-        #      pressed = chr(key).lower()
-        #      if pressed == "b":
-        #          current_class = "backpack"
-        #      elif pressed == "s":
-        #          current_class = "survivor"
-        #      elif pressed == "f":
-        #          current_class = "fire extinguisher"
-        #      elif pressed == "p":
-        #          current_class = "cell phone"
-        #      elif pressed == "d":
-        #          current_class = "drill"
-        #     
-        #      draw(original.copy())
+        elif (key == ord('m') or (shift_pressed and key == ord('m')) or
+                key == ord('M')):
+            shift_pressed = False
+            current_class = "helmet"
+            draw(original.copy())
 
         elif key == ord('c'): # Clear everything
             bboxes.clear()
@@ -397,7 +378,7 @@ def main():
         # labeled something, as above.
         if key == ord('q'):
             break
-        elif key == ord('r'):
+        elif key == ord('f'):
             rotate_image = not rotate_image
         elif key == ord('w'):
             validation = not validation
