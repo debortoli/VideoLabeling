@@ -20,6 +20,7 @@ import argparse
 import drawing_utils
 import os
 import bbox_writer
+import sys
 
 description_text="""\
 Use this script to label individual frames of a video manually.
@@ -306,6 +307,7 @@ def main():
     if args.run_path == "":
         run_name = "%s" % (filename)
         run_path = os.path.join(os.path.dirname(args.filename.name), run_name)
+        
     
         try:
             os.mkdir(run_path)
