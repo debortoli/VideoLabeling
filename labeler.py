@@ -220,6 +220,18 @@ def label_frame(original, bboxes, classes, frame_text):
             current_class = "helmet"
             draw(original.copy())
 
+        elif (key == ord('z') or (shift_pressed and key == ord('z')) or
+                key == ord('Z')):
+            shift_pressed = False
+            current_class = "helmet-light"
+            draw(original.copy())
+
+        elif (key == ord('a') or (shift_pressed and key == ord('a')) or
+                key == ord('A')):
+            shift_pressed = False
+            current_class = "rope-non-bunched"
+            draw(original.copy())
+
         elif key == ord('c'): # Clear everything
             bboxes.clear()
             classes.clear()
