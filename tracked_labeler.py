@@ -276,7 +276,8 @@ def label_frame(original, bboxes, new_bboxes, classes, frame_text, trackers):
                 if new_bboxes:
                     new_bboxes.pop(len(bboxes) - 1)
                 else:
-                    trackers.pop(len(trackers) - 1)
+                    if trackers:
+                        trackers.pop(len(trackers) - 1)
                 classes.pop(len(classes) - 1)
                 draw(original.copy())
 
@@ -612,14 +613,31 @@ def correction_mode(orig, trackers, bboxes, classes):
     cv2.setMouseCallback(WINDOW, lambda *args: None)
 
 
+def check_bbox(bbox, frame):
+    height = frame.shape[0]
+    width = frame.shape[1]
+    p0 = bbox[:2]
+    p1 = []
+    p1.append(p0[0] + bbox[2])
+    p1.append(p0[1] + bbox[3])
+    print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
+    if p0[0] < 10 or p0[1] < 10 or  p1[0] > width - 10 or p1[1] > height - 10:
+        #print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
+        return False
+    else:
+        return True
+
 
 def main():
     vid = open_vid(args.filename.name)
+    back_track = False
     prev_classes = []
+    backward = False
     frame_classes = []
     trackers = []
     classes = []
     bboxes = []
+    back_first = False
     tracker_index = args.tracker
     tracker_fn = tracker_fns[tracker_index]
     tracker_name = tracker_fn.__name__.split("_")[0]
@@ -662,9 +680,8 @@ def main():
         annotated_classes = []
         bboxes = []
 
-        if current_frame_number not in stored_frames:
+        if (current_frame_number not in stored_frames):
             ret, frame = vid.read()
-        
             if not ret:
                 print("Unable to open frame, quitting!")
                 break
@@ -677,6 +694,41 @@ def main():
             if validation:
                 bboxes, classes = load_bboxes(current_frame_number, run_path)
             else:
+                scaled_frame = scale_frame_for_tracking(frame)
+                rem = []
+                for i, tracker in enumerate(trackers):
+                    ret, bbox = tracker.update(scaled_frame)
+                    bbox = unscale_bbox_for_tracking(bbox)
+                    if not ret:
+                        bboxes.append(None)
+                        rem.append(i)
+                        print ("Tracking failure for %s" % classes[i])
+#                    elif not check_bbox(bbox, frame):
+#                        bboxes.append(None)
+#                        rem.append(i)
+#                        print ("%s lost" % classes[i])
+                    else:
+                        bboxes.append(np.array(bbox))
+                        #annotated_classes.append("%d:%s" % (i, classes[i]))
+                for i in rem:
+                    bboxes.pop(i)
+                    classes.pop(i)
+                    trackers.pop(i)
+                    for j in rem:
+                        j -= 1
+                if args.refine:
+                    refine_bboxes(bboxes, classes, frame, trackers)
+
+   
+#            stored_frames[current_frame_number] = (frame.copy(), bboxes.copy(), classes.copy())
+
+            if len(stored_frames) > CACHE_SIZE:
+                last_removed_frame += 1
+                stored_frames.pop(last_removed_frame)
+
+        else:
+            frame, temp_bboxes, temp_classes = stored_frames[current_frame_number]
+            if (back_track and not back_first) or not bboxes:
                 scaled_frame = scale_frame_for_tracking(frame)
                 rem = []
                 for i, tracker in enumerate(trackers):
@@ -698,17 +750,18 @@ def main():
                         j -= 1
                 if args.refine:
                     refine_bboxes(bboxes, classes, frame, trackers)
+            elif back_first:
+                back_first = False
+                bboxes = temp_bboxes
+                classes = temp_classes
+            else:
+                bboxes = temp_bboxes
+                classes = temp_classes
+                trackers.clear()
+                add_trackers(tracker_index, frame.copy(), bboxes.copy(), trackers)
+#            stored_frames[current_frame_number] = (frame.copy(), bboxes.copy(), classes.copy())
 
-   
-            stored_frames[current_frame_number] = (frame.copy(), bboxes.copy(), classes.copy())
 
-            if len(stored_frames) > CACHE_SIZE:
-                last_removed_frame += 1
-                stored_frames.pop(last_removed_frame)
-
-        else:
-            frame, bboxes, classes = stored_frames[current_frame_number]
-            
         if rotate_image:
             frame = frame[::-1, ::-1, :] # Makes a copy
 
@@ -720,15 +773,19 @@ def main():
             "Autoplay delay: " + str(autoplay_delay),
             "Stopping at next save frame: " + str(stop_at_next_save),
             "Validation mode: " + str(validation),
+            "Backward Tracking: " + str(back_track),
         ]
         draw_frame_text(drawable_frame, frame_text)
-#        print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
+        print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
         drawing_utils.draw_bboxes(drawable_frame, bboxes, classes)
 
         show_scaled(WINDOW, drawable_frame)
 
         if autoplay:
             delay = autoplay_delay if autoplay else 0
+            key = cv2.waitKey(delay) & 0xFF
+        elif backward:
+            delay = autoplay_delay if backward else 0
             key = cv2.waitKey(delay) & 0xFF
         else:
             key = label_frame(frame, bboxes, new_bboxes, classes, frame_text, trackers)
@@ -739,11 +796,13 @@ def main():
             if stop_at_next_save:
                 stop_at_next_save = False
                 autoplay = False
+                backward = False
+
         ##
         if not args.validation:
             add_trackers(tracker_index, frame.copy(), new_bboxes.copy(), trackers)
             
-            
+        stored_frames[current_frame_number] = (frame.copy(), bboxes.copy(), classes.copy())    
         original = frame.copy()
         # Handle whatever key the user pressed. The user may have potentially
         # labeled something, as above.
@@ -755,6 +814,7 @@ def main():
             validation = not validation
         elif key == ord('l'):
             current_frame_number += 1
+            back_track = False
         elif key == ord('g'):
             current_frame_number -= 1
             current_frame_number = max(current_frame_number,
@@ -766,6 +826,14 @@ def main():
         elif key == ord(' '):
             autoplay = not autoplay
             autoplay_delay = 32
+            back_track = False
+        elif key == ord('m'):
+            back_track = not back_track
+            back_first = True
+        elif key == ord('v'):
+            backward = True
+            stop_at_next_save = True
+            current_frame_number -= 1
         elif key == ord('e'):
             correction_mode(original, trackers, bboxes, classes)
             stored_frames[current_frame_number] = (original.copy(), bboxes.copy(), classes.copy())
@@ -774,12 +842,15 @@ def main():
             autoplay = True
             autoplay_delay = 1
             current_frame_number += 1
+            back_track = False
         elif key == ord('+') or key == ord('='):
             brightness = min(brightness + 0.1, 3.0)
         elif key == ord('-') or key == ord('_'):
             brightness = max(brightness - 0.1, 0)
         elif autoplay:
             current_frame_number += 1
+        elif backward:
+            current_frame_number -= 1
 
     vid.release()
     cv2.destroyAllWindows()
