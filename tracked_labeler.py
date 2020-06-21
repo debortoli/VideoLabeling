@@ -26,14 +26,23 @@ import argparse
 import drawing_utils
 
 description_text="""\
-Use this script to label individual frames of a video manually.
+Note: This script is still in development and has some bugs. If you find any bugs, please
+    contact Valmiki Kothare on the subt slack, or at valmiki.kothare.vk@gmail.com
 
-In a similar manner to find_bb.py, this script lets you individually annotate
-every single frame in a video. However, this script is meant to work standalone,
-and does not rely on any tracking to interpolate between frames. This script is
-best used in cases where a tracker based approach would fail, such as in videos
-that have very fast moving objects, or objects that are coming in and out of the
-frame constantly.
+Use this script to label a video with assisted 
+
+Like labeler.py, this script lets you label a video for the various objects of interest, but
+includes assisted tracking to speed up the process.
+Recommended procedure:
+    Use 'n' key to advance to first object in video
+    Label the object as you would with labeler.py
+    Press 'n' again to advance to next frame, which should have updated the bounding box to
+        track the object
+    When the object leaves the frame, the bounding box should be automatically removed.
+        If it is not, simply manually remove it with 'x'(last bbox) or 'c'(all bboxes)
+    If you make a mistake, go back, remove a mistaken label, and relabel manually
+    Bounding boxes may not grow with an object as the camera comes closer, so use 'e' when the
+        video is paused to enter correction mode, which will allow you to resize the bbox
 
 Normal Mode Keybinds:
 
@@ -46,6 +55,14 @@ Normal Mode Keybinds:
     d:        Toggle rotation 180 degrees
     w:        Toggle validation mode (don't write out new images or labels)
     q:        Quit the labeler
+
+   new:
+    e:        Correction mode, shift bounding boxes if necessary(only use when paused)
+    m:        Toggle backward tracking mode, use if you wish to find the object and track it
+              backwards through the video. Only use if you have not labeled the previous frames
+    v:        Use to go back to the previous save frame, useful for backward tracking
+
+
 
 Label Mode Keybinds:
 
@@ -620,7 +637,7 @@ def check_bbox(bbox, frame):
     p1 = []
     p1.append(p0[0] + bbox[2])
     p1.append(p0[1] + bbox[3])
-    print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
+#    print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
     if p0[0] < 10 or p0[1] < 10 or  p1[0] > width - 10 or p1[1] > height - 10:
         #print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
         return False
@@ -703,10 +720,10 @@ def main():
                         bboxes.append(None)
                         rem.append(i)
                         print ("Tracking failure for %s" % classes[i])
-#                    elif not check_bbox(bbox, frame):
-#                        bboxes.append(None)
-#                        rem.append(i)
-#                        print ("%s lost" % classes[i])
+                    elif not check_bbox(bbox, frame):
+                        bboxes.append(None)
+                        rem.append(i)
+                        print ("%s lost" % classes[i])
                     else:
                         bboxes.append(np.array(bbox))
                         #annotated_classes.append("%d:%s" % (i, classes[i]))
