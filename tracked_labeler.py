@@ -342,17 +342,17 @@ def save_frame(frame, bboxes, classes, run_path, frame_number, validation):
     frame_path = os.path.join(run_path, "%05d.png" % frame_number)
     bbox_path = os.path.join(run_path, "%05d.txt" % frame_number)
 
-    if validation:
-        if os.path.isfile(frame_path):
-            bbox_writer.write_bboxes(bboxes, classes, bbox_path)
-        else:
-            print("Image %d not found, skipping." % frame_number)
-    else:
-        if not os.path.isfile(frame_path):
-            print("Saving frame %d to %s" % (frame_number, frame_path))
-            cv2.imwrite(frame_path, frame)
+#    if validation:
+#        if os.path.isfile(frame_path):
+#            bbox_writer.write_bboxes(bboxes, classes, bbox_path)
+#        else:
+#            print("Image %d not found, skipping." % frame_number)
+#    else:
+    if not os.path.isfile(frame_path):
+        print("Saving frame %d to %s" % (frame_number, frame_path))
+        cv2.imwrite(frame_path, frame)
 
-        bbox_writer.write_bboxes(bboxes, classes, bbox_path)
+    bbox_writer.write_bboxes(bboxes, classes, bbox_path)
 
 
 def add_trackers(tracker_index, frame, bboxes, trackers):
@@ -368,7 +368,7 @@ def add_trackers(tracker_index, frame, bboxes, trackers):
             print("Unable to initialize tracker", i)
             continue
         else:
-            print("Successfully initialized tracker", i)
+#            print("Successfully initialized tracker", i)
             trackers.append(tracker)
 
 def scale_bboxes_for_tracking(bboxes):
@@ -638,7 +638,7 @@ def check_bbox(bbox, frame):
     p1.append(p0[0] + bbox[2])
     p1.append(p0[1] + bbox[3])
 #    print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
-    if p0[0] < 10 or p0[1] < 10 or  p1[0] > width - 10 or p1[1] > height - 10:
+    if p0[0] < 5 or p0[1] < 5 or  p1[0] > width - 5 or p1[1] > height - 5:
         #print ("%d:%d , %d,%d" % (p0[0], p0[1], p1[0], p1[1]))
         return False
     else:
@@ -696,6 +696,7 @@ def main():
         temp_bboxes = []
         annotated_classes = []
         bboxes = []
+#        print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
 
         if (current_frame_number not in stored_frames):
             ret, frame = vid.read()
@@ -710,6 +711,8 @@ def main():
             
             if validation:
                 bboxes, classes = load_bboxes(current_frame_number, run_path)
+#                for cls in classes:
+#                    print (cls)
             else:
                 scaled_frame = scale_frame_for_tracking(frame)
                 rem = []
@@ -727,12 +730,14 @@ def main():
                     else:
                         bboxes.append(np.array(bbox))
                         #annotated_classes.append("%d:%s" % (i, classes[i]))
+                n = 0
                 for i in rem:
-                    bboxes.pop(i)
-                    classes.pop(i)
-                    trackers.pop(i)
-                    for j in rem:
-                        j -= 1
+                    j = i-n
+                    bboxes.pop(j)
+                    classes.pop(j)
+                    trackers.pop(j)
+                    n += 1
+
                 if args.refine:
                     refine_bboxes(bboxes, classes, frame, trackers)
 
@@ -745,26 +750,30 @@ def main():
 
         else:
             frame, temp_bboxes, temp_classes = stored_frames[current_frame_number]
-            if (back_track and not back_first) or not bboxes:
+            if (not validation) and ((back_track and not back_first) or not temp_bboxes):
                 scaled_frame = scale_frame_for_tracking(frame)
                 rem = []
                 for i, tracker in enumerate(trackers):
                     ret, bbox = tracker.update(scaled_frame)
                     bbox = unscale_bbox_for_tracking(bbox)
                     if not ret:
-                        print("Tracking failure for object", i)
                         bboxes.append(None)
                         rem.append(i)
-                        print ("[FAILURE] %d:%s" % (i, classes[i]))
+                        print ("Tracking failure for %s" % classes[i])
+                    elif not check_bbox(bbox, frame):
+                        bboxes.append(None)
+                        rem.append(i)
+                        print ("%s lost" % classes[i])
                     else:
                         bboxes.append(np.array(bbox))
                         #annotated_classes.append("%d:%s" % (i, classes[i]))
+                n = 0
                 for i in rem:
-                    bboxes.pop(i)
-                    classes.pop(i)
-                    trackers.pop(i)
-                    for j in rem:
-                        j -= 1
+                    j = i-n
+                    bboxes.pop(j)
+                    classes.pop(j)
+                    trackers.pop(j)
+                    n += 1
                 if args.refine:
                     refine_bboxes(bboxes, classes, frame, trackers)
             elif back_first:
@@ -793,7 +802,7 @@ def main():
             "Backward Tracking: " + str(back_track),
         ]
         draw_frame_text(drawable_frame, frame_text)
-        print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
+#        print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
         drawing_utils.draw_bboxes(drawable_frame, bboxes, classes)
 
         show_scaled(WINDOW, drawable_frame)
@@ -816,7 +825,7 @@ def main():
                 backward = False
 
         ##
-        if not args.validation:
+        if not validation:
             add_trackers(tracker_index, frame.copy(), new_bboxes.copy(), trackers)
             
         stored_frames[current_frame_number] = (frame.copy(), bboxes.copy(), classes.copy())    
@@ -868,7 +877,9 @@ def main():
             current_frame_number += 1
         elif backward:
             current_frame_number -= 1
-
+        
+        current_frame_number = max(current_frame_number,
+                    last_removed_frame + 1) 
     vid.release()
     cv2.destroyAllWindows()
 
