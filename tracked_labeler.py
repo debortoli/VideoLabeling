@@ -242,13 +242,30 @@ def label_frame(original, bboxes, new_bboxes, classes, frame_text, trackers):
             shift_pressed = False
             current_class = "backpack"
             draw(original.copy())
+
+        elif (key == ord('o') or (shift_pressed and key == ord('o')) or
+                key == ord('O')):
+            shift_pressed = False
+            current_class = "drill"
+            draw(original.copy())
+
+        elif (key == ord('i') or (shift_pressed and key == ord('i')) or
+                key == ord('I')):
+            shift_pressed = False
+            current_class = "fire extinguisher"
+            draw(original.copy())
+
+        elif (key == ord('t') or (shift_pressed and key == ord('t')) or
+                key == ord('T')):
+            shift_pressed = False
+            current_class = "vent"
+            draw(original.copy())
         
         elif (key == ord('s') or (shift_pressed and key == ord('s')) or
                 key == ord('S')):
             shift_pressed = False
             current_class = "survivor"
-            draw(original.copy())
-       
+            draw(original.copy())       
         
         elif (key == ord('p') or (shift_pressed and key == ord('p')) or
                 key == ord('P')):
