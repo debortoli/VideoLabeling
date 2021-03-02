@@ -359,17 +359,17 @@ def save_frame(frame, bboxes, classes, run_path, frame_number, validation):
     frame_path = os.path.join(run_path, "%05d.png" % frame_number)
     bbox_path = os.path.join(run_path, "%05d.txt" % frame_number)
 
-#    if validation:
-#        if os.path.isfile(frame_path):
-#            bbox_writer.write_bboxes(bboxes, classes, bbox_path)
-#        else:
-#            print("Image %d not found, skipping." % frame_number)
-#    else:
-    if not os.path.isfile(frame_path):
-        print("Saving frame %d to %s" % (frame_number, frame_path))
-        cv2.imwrite(frame_path, frame)
+    if validation:
+        if os.path.isfile(frame_path):
+            bbox_writer.write_bboxes(bboxes, classes, bbox_path)
+        else:
+            print("Image %d not found, skipping." % frame_number)
+    else:
+        if not os.path.isfile(frame_path):
+            print("Saving frame %d to %s" % (frame_number, frame_path))
+            cv2.imwrite(frame_path, frame)
 
-    bbox_writer.write_bboxes(bboxes, classes, bbox_path)
+        bbox_writer.write_bboxes(bboxes, classes, bbox_path)
 
 
 def add_trackers(tracker_index, frame, bboxes, trackers):
@@ -725,11 +725,8 @@ def main():
             # If this is a frame we care about, save it to disk. Also, see if
             # there is already a saved set of bboxes, and load those if they
             # exist.
-            
             if validation:
                 bboxes, classes = load_bboxes(current_frame_number, run_path)
-#                for cls in classes:
-#                    print (cls)
             else:
                 scaled_frame = scale_frame_for_tracking(frame)
                 rem = []
@@ -819,7 +816,7 @@ def main():
             "Backward Tracking: " + str(back_track),
         ]
         draw_frame_text(drawable_frame, frame_text)
-#        print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
+        # print("%d:%d:%d" % (len(bboxes), len(classes), current_frame_number))
         drawing_utils.draw_bboxes(drawable_frame, bboxes, classes)
 
         show_scaled(WINDOW, drawable_frame)
