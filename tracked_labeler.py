@@ -304,17 +304,6 @@ def label_frame(original, bboxes, new_bboxes, classes, frame_text, trackers):
             trackers.clear()
             draw(original.copy())
 
-        elif key == ord('x'): # Remove most recently placed box
-            if len(bboxes) > 0:
-                bboxes.pop(len(bboxes) - 1)
-                if new_bboxes:
-                    new_bboxes.pop(len(bboxes) - 1)
-                else:
-                    if trackers:
-                        trackers.pop(len(trackers) - 1)
-                classes.pop(len(classes) - 1)
-                draw(original.copy())
-
         elif key == ord('y'): # Get the data from the last label session
             bboxes.clear()
             new_bboxes.clear()
