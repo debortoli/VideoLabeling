@@ -113,6 +113,8 @@ parser.add_argument("-x", "--experiment", action="store_true", default=False,
         help="Don't write out any files")
 parser.add_argument("-e", "--refine", action="store_true", default=False,
         help="Auto-refine bounding boxes during tracking (experimental)")
+parser.add_argument("--mac", action="store_true", default=False,
+        help="Auto-refine bounding boxes during tracking (experimental)")
 parser.add_argument("-d", "--decimate", type=float, default=1.0,
         help="Scale factor for tracked image. Smaller means faster tracking")
 
@@ -123,16 +125,20 @@ WINDOW = "Tracked Labeling"
 WINDOW_SCALE = args.window_scale
 CACHE_SIZE = 150 # 5 seconds worth of frames
 
-tracker_fns = [
-        cv2.TrackerKCF_create,
-        cv2.TrackerBoosting_create,
-        cv2.TrackerCSRT_create,
-        cv2.TrackerGOTURN_create,
-        cv2.TrackerMIL_create,
-        cv2.TrackerMOSSE_create,
-        cv2.TrackerMedianFlow_create,
-        cv2.TrackerTLD_create,
-]
+# tracker_fns = [
+#         cv2.TrackerKCF_create,
+#         cv2.TrackerBoosting_create,
+#         cv2.TrackerCSRT_create,
+#         cv2.TrackerGOTURN_create,
+#         cv2.TrackerMIL_create,
+#         cv2.TrackerMOSSE_create,
+#         cv2.TrackerMedianFlow_create,
+#         cv2.TrackerTLD_create,
+# ]
+if args.mac:
+    tracker_fns = [cv2.legacy.TrackerCSRT_create]
+else:
+    tracker_fns = [cv2.TrackerCSRT_create]
 
 
 
@@ -369,6 +375,8 @@ def add_trackers(tracker_index, frame, bboxes, trackers):
 
     for i, bbox in enumerate(bboxes):
         tracker = tracker_fn()
+        if args.mac:
+            bbox = tuple(int(tup) for tup in bbox)
         ret = tracker.init(frame, tuple(bbox))
         if not ret:
             print("Unable to initialize tracker", i)
