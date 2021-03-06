@@ -125,20 +125,16 @@ WINDOW = "Tracked Labeling"
 WINDOW_SCALE = args.window_scale
 CACHE_SIZE = 150 # 5 seconds worth of frames
 
-# tracker_fns = [
-#         cv2.TrackerKCF_create,
-#         cv2.TrackerBoosting_create,
-#         cv2.TrackerCSRT_create,
-#         cv2.TrackerGOTURN_create,
-#         cv2.TrackerMIL_create,
-#         cv2.TrackerMOSSE_create,
-#         cv2.TrackerMedianFlow_create,
-#         cv2.TrackerTLD_create,
-# ]
 if args.mac:
-    tracker_fns = [cv2.legacy.TrackerCSRT_create]
+    try:
+        tracker_fns = [cv2.legacy.TrackerCSRT_create]
+    except:
+        print("\nCould not import tracker, you may need to remove the --mac flag\n")
 else:
-    tracker_fns = [cv2.TrackerCSRT_create]
+    try:
+        tracker_fns = [cv2.TrackerCSRT_create]
+    except:
+        print("\nCould not import tracker, you may need the --mac flag\n")
 
 
 
