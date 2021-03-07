@@ -105,7 +105,7 @@ parser.add_argument("-s", "--scale", type=float, default=1.0, required=False,
         help="Scale factor to help the tracker along")
 parser.add_argument("-w", "--window_scale", default=1.0, type=float,
         help="How much to scale image by before displaying (save original)")
-parser.add_argument("-t", "--tracker", type=int, default=2, required=False,
+parser.add_argument("-t", "--tracker", type=int, default=0, required=False,
         help="Index of tracker to use, [0-7]")
 parser.add_argument("-y", "--yes", action="store_true", default=False,
         help="Skip initial bounding box validation")
