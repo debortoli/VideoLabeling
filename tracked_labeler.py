@@ -299,6 +299,12 @@ def label_frame(original, bboxes, new_bboxes, classes, frame_text, trackers):
             current_class = "rope-non-bunched"
             draw(original.copy())
 
+        elif (key == ord('u') or (shift_pressed and key == ord('u')) or
+                key == ord('U')):
+            shift_pressed = False
+            current_class = "cube"
+            draw(original.copy())
+
         elif key == ord('c'): # Clear everything
             bboxes.clear()
             new_bboxes.clear()
